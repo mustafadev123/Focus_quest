@@ -58,6 +58,12 @@ final tasksProvider =
     AsyncNotifierProvider<TaskListNotifier, List<StudyTask>>(
         TaskListNotifier.new);
 
+/// One task, loaded fresh each time the edit screen opens.
+final taskByIdProvider =
+    FutureProvider.autoDispose.family<StudyTask?, int>((ref, id) {
+  return ref.watch(taskRepositoryProvider).getById(id);
+});
+
 final subjectsProvider = FutureProvider<List<String>>((ref) {
   ref.watch(dataRevisionProvider);
   return ref.watch(taskRepositoryProvider).getSubjects();

@@ -6,6 +6,7 @@ import '../../domain/models/study_task.dart';
 import '../../providers/dashboard_providers.dart';
 import '../../providers/task_providers.dart';
 import '../shell/home_shell.dart';
+import '../task_form/task_form_screen.dart';
 import '../widgets/state_views.dart';
 import 'widgets/summary_card.dart';
 import 'widgets/task_card.dart';
@@ -126,6 +127,10 @@ class _TaskList extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
           ],
+        if (allTasks.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          const _AddTaskButton(),
+        ],
       ],
     );
   }
@@ -210,8 +215,26 @@ class _EmptyTasks extends StatelessWidget {
           Text('Add your first task.',
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          const _AddTaskButton(expand: false),
         ],
       ),
     );
+  }
+}
+
+class _AddTaskButton extends StatelessWidget {
+  const _AddTaskButton({this.expand = true});
+
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = FilledButton.icon(
+      onPressed: () => TaskFormScreen.open(context),
+      icon: const Icon(Icons.add),
+      label: const Text('Add task'),
+    );
+    return expand ? SizedBox(width: double.infinity, child: button) : button;
   }
 }
