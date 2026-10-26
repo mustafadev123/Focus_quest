@@ -11,6 +11,7 @@ import '../../providers/task_providers.dart';
 import '../format.dart';
 import '../shell/home_shell.dart';
 import '../widgets/state_views.dart';
+import 'widgets/completion_overlay.dart';
 import 'widgets/review_dialog.dart';
 
 class FocusScreen extends ConsumerWidget {
@@ -21,10 +22,12 @@ class FocusScreen extends ConsumerWidget {
     final session = ref.watch(focusControllerProvider);
     final tasks = ref.watch(tasksProvider);
 
+    // Keep showing the current data while either provider refreshes, so a
+    // reload after a save does not replace the screen with a spinner.
     return Scaffold(
       appBar: AppBar(title: const Text('Focus Session')),
       body: switch ((session, tasks)) {
-        (AsyncData(value: final s), AsyncData(value: final t)) =>
+        (AsyncValue(value: final s?), AsyncValue(value: final t?)) =>
           _FocusBody(session: s, tasks: t),
         (AsyncError(), _) => ErrorView(
             message: "Couldn't restore your focus session.",
@@ -53,11 +56,22 @@ class _FocusBody extends ConsumerStatefulWidget {
 class _FocusBodyState extends ConsumerState<_FocusBody> {
   Timer? _ticker;
   bool _reviewOpen = false;
+  late final AppLifecycleListener _lifecycle;
+
+  /// Minutes just saved while the completion moment is showing.
+  int? _celebratingMinutes;
 
   @override
   void initState() {
     super.initState();
     _syncTicker();
+    _lifecycle = AppLifecycleListener(
+      // Leaving the app re-saves the checkpoint.
+      onHide: () => _controller.checkpoint().catchError((_) {}),
+      // Coming back refreshes the countdown and opens the review if the
+      // target was reached while the app was in the background.
+      onResume: _tick,
+    );
   }
 
   @override
@@ -69,6 +83,7 @@ class _FocusBodyState extends ConsumerState<_FocusBody> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _lifecycle.dispose();
     super.dispose();
   }
 
@@ -125,10 +140,18 @@ class _FocusBodyState extends ConsumerState<_FocusBody> {
     _reviewOpen = true;
     final saved = await showReviewDialog(context);
     _reviewOpen = false;
-    if (saved && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Session saved')));
-    }
+    if (!saved || !mounted) return;
+
+    final session = ref.read(focusControllerProvider).value;
+    final finished = session?.finishedAt;
+    setState(() => _celebratingMinutes =
+        finished == null ? 0 : session!.recordedMinutesAt(finished));
+  }
+
+  /// After the completion moment, Save opens History (navigation map).
+  void _completionDone() {
+    setState(() => _celebratingMinutes = null);
+    ref.read(selectedTabProvider.notifier).select(AppTab.history);
   }
 
   Future<void> _reset() async {
@@ -158,6 +181,11 @@ class _FocusBodyState extends ConsumerState<_FocusBody> {
 
   @override
   Widget build(BuildContext context) {
+    final celebrating = _celebratingMinutes;
+    if (celebrating != null) {
+      return CompletionOverlay(minutes: celebrating, onDone: _completionDone);
+    }
+
     final session = widget.session;
     final now = ref.watch(clockProvider)();
     final pending = widget.tasks.where((t) => !t.isCompleted).toList();

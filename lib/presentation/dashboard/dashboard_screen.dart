@@ -24,8 +24,9 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('FocusQuest')),
+      // Keep the current list visible while it refreshes after a change.
       body: switch (tasks) {
-        AsyncData(:final value) => _Loaded(allTasks: value),
+        AsyncValue(:final value?) => _Loaded(allTasks: value),
         AsyncError() => ErrorView(
             message: "Couldn't load your tasks.",
             onRetry: () => ref.invalidate(tasksProvider),

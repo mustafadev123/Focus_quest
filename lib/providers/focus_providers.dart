@@ -87,6 +87,16 @@ class FocusController extends AsyncNotifier<FocusSession> {
     }
   }
 
+  /// Re-writes the checkpoint of an in-progress session, for example when
+  /// the app goes to the background. Timing comes from the stored
+  /// timestamps, so this only guards against a lost earlier write.
+  Future<void> checkpoint() async {
+    final current = state.value;
+    if (current != null && current.isInProgress) {
+      await _checkpoints.save(current);
+    }
+  }
+
   /// Discards unsaved progress; the task and target stay selected.
   Future<void> reset() async {
     await _checkpoints.clear();

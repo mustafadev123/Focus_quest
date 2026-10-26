@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_quest/domain/focus/focus_session.dart';
 import 'package:focus_quest/domain/models/study_session.dart';
 import 'package:focus_quest/domain/models/study_task.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:focus_quest/presentation/focus/focus_screen.dart';
+import 'package:focus_quest/presentation/focus/widgets/completion_overlay.dart';
 import 'package:focus_quest/presentation/shell/home_shell.dart';
 import 'package:focus_quest/providers/dashboard_providers.dart';
 
@@ -71,6 +74,13 @@ Future<void> _tap(WidgetTester tester, String label) async {
 Future<void> _elapse(WidgetTester tester, TestClock clock, Duration by) async {
   clock.advance(by);
   await tester.pump(const Duration(seconds: 1));
+  await tester.pumpAndSettle();
+}
+
+/// Plays the completion animation and its hold to the end.
+Future<void> _finishCompletion(WidgetTester tester) async {
+  await tester.pumpAndSettle(); // dialog closes, animation runs to the end
+  await tester.pump(CompletionOverlay.holdDuration);
   await tester.pumpAndSettle();
 }
 
@@ -169,10 +179,14 @@ void main() {
     expect(await env.sessions.getRecords(), isEmpty);
 
     await _tap(tester, 'Review and save');
-    await _tap(tester, 'Save session');
+    await tester.tap(_button('Save session'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Session saved'), findsOneWidget);
-    expect(find.text('Saved'), findsOneWidget);
+    expect(find.text('6 minutes added to History'), findsOneWidget);
+    await _finishCompletion(tester);
+
     final records = await env.sessions.getRecords();
     expect(records.single.session.durationMinutes, 6);
     expect(records.single.session.status, SessionStatus.endedEarly);
@@ -192,7 +206,89 @@ void main() {
     expect(await env.sessions.getRecords(), isEmpty);
 
     await _tap(tester, 'Save session');
+    await _finishCompletion(tester);
     expect(await env.sessions.getRecords(), hasLength(1));
+  });
+
+  testWidgets(
+      'after saving, the completion moment opens History and the '
+      'Dashboard totals are updated', (tester) async {
+    final env = await _focusOnTask(tester);
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(FocusScreen)));
+    await _tap(tester, 'Start');
+    await _elapse(tester, env.clock, const Duration(minutes: 12));
+    await _tap(tester, 'Finish');
+    await tester.tap(_button('Save session'));
+    await tester.pump();
+
+    // Still on Focus while the animation plays.
+    expect(container.read(selectedTabProvider), AppTab.focus);
+    await _finishCompletion(tester);
+
+    expect(container.read(selectedTabProvider), AppTab.history);
+    container.read(selectedTabProvider.notifier).select(AppTab.tasks);
+    await tester.pumpAndSettle();
+    expect(find.text('12m'), findsOneWidget);
+
+    // Focus shows the Saved state when revisited.
+    container.read(selectedTabProvider.notifier).select(AppTab.focus);
+    await tester.pumpAndSettle();
+    expect(find.text('Saved'), findsOneWidget);
+    expect(find.text('New session'), findsOneWidget);
+  });
+
+  testWidgets('with reduced motion the check appears without animating',
+      (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    final env = await _focusOnTask(tester);
+    await _tap(tester, 'Start');
+    await _elapse(tester, env.clock, const Duration(minutes: 5));
+    await _tap(tester, 'Finish');
+
+    await tester.tap(_button('Save session'));
+    await tester.pump();
+    await tester.pump();
+
+    final scale = tester.widget<ScaleTransition>(find.descendant(
+        of: find.byType(CompletionOverlay),
+        matching: find.byType(ScaleTransition)));
+    expect(scale.scale.value, 1);
+    await _finishCompletion(tester);
+  });
+
+  testWidgets('returning to the app after the target passed opens the review',
+      (tester) async {
+    final env = await _focusOnTask(tester);
+    await _tap(tester, 'Start');
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    env.clock.advance(const Duration(minutes: 40));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review session'), findsOneWidget);
+    expect(find.text('25:00'), findsOneWidget);
+    expect(await env.sessions.getRecords(), isEmpty);
+  });
+
+  testWidgets('leaving the app re-saves the checkpoint', (tester) async {
+    final env = await _focusOnTask(tester);
+    await _tap(tester, 'Start');
+    env.checkpoints.checkpoint = null; // e.g. an earlier write was lost
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    await tester.pump();
+
+    expect(env.checkpoints.checkpoint?.phase, FocusPhase.running);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
   });
 
   testWidgets('reaching 00:00 opens the review without saving', (tester) async {
