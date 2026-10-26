@@ -268,11 +268,13 @@ class _TaskFormState extends ConsumerState<_TaskForm> {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  TextButton(
-                    onPressed: _saving ? null : _leave,
-                    child: const Text('Cancel'),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _saving ? null : _leave,
+                      child: const Text('Cancel'),
+                    ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
                       onPressed: _saving ? null : _save,

@@ -229,6 +229,21 @@ void main() {
     expect(subject.controller.text, 'Data Structures');
   });
 
+  testWidgets('Cancel and Save task share the row in equal halves',
+      (tester) async {
+    await pumpTestApp(tester);
+    await _openAdd(tester);
+    await tester.ensureVisible(find.text('Save task'));
+    await tester.pumpAndSettle();
+
+    final cancel =
+        tester.getRect(find.widgetWithText(OutlinedButton, 'Cancel'));
+    final save = tester.getRect(find.widgetWithText(FilledButton, 'Save task'));
+    expect(cancel.width, save.width);
+    expect(cancel.height, save.height);
+    expect(cancel.top, save.top);
+  });
+
   testWidgets('the form lays out at 2x text scale', (tester) async {
     tester.view.physicalSize = const Size(780, 1600);
     tester.view.devicePixelRatio = 2;
