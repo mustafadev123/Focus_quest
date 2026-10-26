@@ -11,7 +11,7 @@ import path_provider_foundation
 =======
 >>>>>>> 0f474f0 (Implement FocusQuest sessions, timer, and smart helper)
 import shared_preferences_foundation
-import sqflite
+import sqflite_darwin
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
 <<<<<<< HEAD
