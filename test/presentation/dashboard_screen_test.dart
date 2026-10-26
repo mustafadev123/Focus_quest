@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_quest/domain/models/session_record.dart';
 import 'package:focus_quest/domain/models/study_session.dart';
 import 'package:focus_quest/domain/models/study_task.dart';
+import 'package:focus_quest/presentation/dashboard/widgets/task_card.dart';
 import 'package:focus_quest/presentation/dashboard/widgets/summary_card.dart';
 import 'package:focus_quest/presentation/shell/home_shell.dart';
 import 'package:focus_quest/providers/dashboard_providers.dart';
@@ -65,7 +66,12 @@ void main() {
     await pumpTestApp(tester, tasks: FakeTaskRepository(tasks: _tasks));
 
     expect(find.text('My tasks (3)'), findsOneWidget);
-    expect(find.text('Review recursion notes'), findsOneWidget);
+    // The title also appears on the Suggested-task card.
+    expect(
+        find.descendant(
+            of: find.byType(TaskCard),
+            matching: find.text('Review recursion notes')),
+        findsOneWidget);
     expect(find.text('Data Structures · High · To do'), findsOneWidget);
     expect(find.text('Physics · High · Completed'), findsOneWidget);
   });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_quest/domain/models/study_task.dart';
+import 'package:focus_quest/presentation/dashboard/widgets/task_card.dart';
 import 'package:focus_quest/presentation/dashboard/dashboard_screen.dart';
 import 'package:focus_quest/presentation/task_form/task_form_screen.dart';
 import 'package:focus_quest/presentation/task_form/widgets/minutes_field.dart';
@@ -29,8 +30,7 @@ Future<void> _openAdd(WidgetTester tester) async {
 }
 
 Future<void> _openEdit(WidgetTester tester, int id) async {
-  TaskFormScreen.open(tester.element(find.byType(DashboardScreen)),
-      taskId: id);
+  TaskFormScreen.open(tester.element(find.byType(DashboardScreen)), taskId: id);
   await tester.pumpAndSettle();
 }
 
@@ -48,13 +48,17 @@ void main() {
 
     await _openAdd(tester);
     expect(find.text('Add Task'), findsOneWidget);
-    await tester.enterText(_field('e.g. Review recursion notes'), 'Lab 3 report');
+    await tester.enterText(
+        _field('e.g. Review recursion notes'), 'Lab 3 report');
     await tester.enterText(_field('e.g. Data Structures'), 'Physics');
     await tester.tap(find.text('High'));
     await _tapSave(tester);
 
     expect(find.text('FocusQuest'), findsOneWidget);
-    expect(find.text('Lab 3 report'), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byType(TaskCard), matching: find.text('Lab 3 report')),
+        findsOneWidget);
     expect(find.text('Physics · High · To do'), findsOneWidget);
     final saved = (await repo.getAll()).single;
     expect(saved.estimatedMinutes, 25);
@@ -115,7 +119,8 @@ void main() {
     final repo = FakeTaskRepository();
     await pumpTestApp(tester, tasks: repo);
     await _openAdd(tester);
-    await tester.enterText(_field('e.g. Review recursion notes'), 'Lab 3 report');
+    await tester.enterText(
+        _field('e.g. Review recursion notes'), 'Lab 3 report');
     await tester.enterText(_field('e.g. Data Structures'), 'Physics');
 
     repo.failNextWrite = StateError('disk full');
@@ -136,7 +141,8 @@ void main() {
     final repo = FakeTaskRepository();
     await pumpTestApp(tester, tasks: repo);
     await _openAdd(tester);
-    await tester.enterText(_field('e.g. Review recursion notes'), 'Lab 3 report');
+    await tester.enterText(
+        _field('e.g. Review recursion notes'), 'Lab 3 report');
     await tester.enterText(_field('e.g. Data Structures'), 'Physics');
 
     await tester.ensureVisible(find.text('Save task'));

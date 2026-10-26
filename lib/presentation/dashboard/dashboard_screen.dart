@@ -9,6 +9,7 @@ import '../shell/home_shell.dart';
 import '../task_actions.dart';
 import '../task_form/task_form_screen.dart';
 import '../widgets/state_views.dart';
+import 'widgets/recommendation_card.dart';
 import 'widgets/summary_card.dart';
 import 'widgets/task_card.dart';
 
@@ -50,6 +51,14 @@ class _Loaded extends ConsumerWidget {
       totalTasks: allTasks.length,
       studiedMinutes: weeklyMinutes,
     );
+    // With no tasks at all, the "No tasks yet" card is the create prompt.
+    final overview = [
+      summary,
+      if (allTasks.isNotEmpty) ...[
+        const SizedBox(height: 12),
+        const RecommendationCard(),
+      ],
+    ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -61,14 +70,20 @@ class _Loaded extends ConsumerWidget {
                 width: constraints.maxWidth * 0.4,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
-                  children: [summary],
+                  children: overview,
                 ),
               ),
               Expanded(child: _TaskList(allTasks: allTasks, header: null)),
             ],
           );
         }
-        return _TaskList(allTasks: allTasks, header: summary);
+        return _TaskList(
+          allTasks: allTasks,
+          header: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: overview,
+          ),
+        );
       },
     );
   }
