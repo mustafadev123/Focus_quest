@@ -9,9 +9,12 @@ import 'package:focus_quest/domain/models/study_task.dart';
 import 'package:focus_quest/providers/core_providers.dart';
 import 'package:focus_quest/providers/dashboard_providers.dart';
 import 'package:focus_quest/providers/focus_providers.dart';
+import 'package:focus_quest/providers/settings_providers.dart';
+import 'package:focus_quest/domain/models/app_settings.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../support/fake_settings_repository.dart';
 import '../support/test_database.dart';
 
 void main() {
@@ -19,9 +22,11 @@ void main() {
   late String path;
   late DateTime now;
   late int taskId;
+  late FakeSettingsRepository settings;
   final opened = <Database>[];
 
   setUp(() async {
+    settings = FakeSettingsRepository();
     dir = await Directory.systemTemp.createTemp('focus_quest_focus');
     path = p.join(dir.path, AppDatabase.fileName);
     now = DateTime(2026, 10, 25, 18);
@@ -55,6 +60,7 @@ void main() {
       overrides: [
         databaseProvider.overrideWithValue(db),
         clockProvider.overrideWithValue(() => now),
+        settingsRepositoryProvider.overrideWithValue(settings),
       ],
     );
     addTearDown(container.dispose);
@@ -83,7 +89,8 @@ void main() {
     final ready = await session(app);
     expect(ready.phase, FocusPhase.ready);
     expect(ready.taskId, taskId);
-    expect(ready.target, const Duration(minutes: defaultFocusMinutes));
+    expect(ready.target,
+        const Duration(minutes: AppSettings.defaultSessionMinutes));
   });
 
   test('a running session is restored after a restart and keeps counting',
@@ -190,5 +197,35 @@ void main() {
     controller(app).selectTask(999);
     expect(app.read(selectedTaskIdProvider), taskId);
     expect((await session(app)).taskId, taskId);
+  });
+
+  test('a Ready session uses the focus duration from Settings', () async {
+    settings.stored = const AppSettings(sessionMinutes: 45);
+    final app = await launch();
+    app.listen(settingsProvider, (_, __) {});
+    await app.read(settingsProvider.future);
+
+    expect((await session(app)).target, const Duration(minutes: 45));
+
+    await app
+        .read(settingsProvider.notifier)
+        .save(const AppSettings(sessionMinutes: 50));
+    expect((await session(app)).target, const Duration(minutes: 50));
+  });
+
+  test('changing Settings does not change a session already running', () async {
+    final app = await launch();
+    app.listen(settingsProvider, (_, __) {});
+    app.read(selectedTaskIdProvider.notifier).select(taskId);
+    await session(app);
+    await controller(app).start();
+
+    await app
+        .read(settingsProvider.notifier)
+        .save(const AppSettings(sessionMinutes: 90));
+
+    final running = await session(app);
+    expect(running.phase, FocusPhase.running);
+    expect(running.target, const Duration(minutes: 25));
   });
 }

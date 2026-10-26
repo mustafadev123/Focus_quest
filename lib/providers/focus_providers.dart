@@ -5,28 +5,28 @@ import '../domain/models/study_session.dart';
 import '../domain/repositories/focus_checkpoint_repository.dart';
 import 'core_providers.dart';
 import 'dashboard_providers.dart';
-
-/// Target used until Settings provides the preferred session length.
-const defaultFocusMinutes = 25;
+import 'settings_providers.dart';
 
 /// Runs the focus session.
 ///
 /// Every transition is written to the checkpoint before the state changes,
 /// so a session restored after a restart is exactly the one on screen. When
 /// no checkpoint exists, the session is Ready for the task selected on the
-/// Dashboard.
+/// Dashboard, with the focus duration from Settings as its target; a session
+/// in progress keeps the target it started with.
 class FocusController extends AsyncNotifier<FocusSession> {
   bool _saving = false;
 
   @override
   Future<FocusSession> build() async {
     final selectedTaskId = ref.watch(selectedTaskIdProvider);
+    final minutes = ref.watch(effectiveSettingsProvider).sessionMinutes;
     final checkpoint =
         await ref.watch(focusCheckpointRepositoryProvider).load();
     return checkpoint ??
         FocusSession.ready(
           taskId: selectedTaskId,
-          target: const Duration(minutes: defaultFocusMinutes),
+          target: Duration(minutes: minutes),
         );
   }
 
