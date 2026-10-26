@@ -40,6 +40,38 @@ class StudySession {
   final int durationMinutes;
   final SessionStatus status;
 
+  /// A manual record or correction from History. The end time is derived
+  /// from the start time and duration so the two can never disagree.
+  factory StudySession.manual({
+    int? id,
+    required int taskId,
+    required DateTime startedAt,
+    required int durationMinutes,
+  }) {
+    return StudySession(
+      id: id,
+      taskId: taskId,
+      startedAt: startedAt,
+      endedAt: startedAt.add(Duration(minutes: durationMinutes)),
+      durationMinutes: durationMinutes,
+      status: SessionStatus.manual,
+    );
+  }
+
+  /// Applies a History correction to this record.
+  StudySession corrected({
+    int? taskId,
+    DateTime? startedAt,
+    int? durationMinutes,
+  }) {
+    return StudySession.manual(
+      id: id,
+      taskId: taskId ?? this.taskId,
+      startedAt: startedAt ?? this.startedAt,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+    );
+  }
+
   StudySession copyWith({
     int? id,
     int? taskId,
