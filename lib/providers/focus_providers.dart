@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/focus/focus_session.dart';
 import '../domain/models/study_session.dart';
 import '../domain/repositories/focus_checkpoint_repository.dart';
+import '../domain/validation/validation.dart';
 import 'core_providers.dart';
 import 'dashboard_providers.dart';
 import 'settings_providers.dart';
@@ -20,7 +21,10 @@ class FocusController extends AsyncNotifier<FocusSession> {
   @override
   Future<FocusSession> build() async {
     final selectedTaskId = ref.watch(selectedTaskIdProvider);
-    final minutes = ref.watch(effectiveSettingsProvider).sessionMinutes;
+    // Read, not watched: setSessionLength updates the state itself, and
+    // clearing the choice after Save must not reset the Saved session.
+    final minutes = ref.read(sessionLengthProvider) ??
+        ref.watch(effectiveSettingsProvider).sessionMinutes;
     final checkpoint =
         await ref.watch(focusCheckpointRepositoryProvider).load();
     return checkpoint ??
@@ -46,6 +50,18 @@ class FocusController extends AsyncNotifier<FocusSession> {
   void selectTask(int? taskId) {
     if (!_current.canChangeTask) return;
     ref.read(selectedTaskIdProvider.notifier).select(taskId);
+  }
+
+  /// Sets the length of the next session only (5–120 minutes); Settings
+  /// keeps the default. Ignored once a session has started.
+  void setSessionLength(int minutes) {
+    if (validateEstimatedMinutes(minutes) != null) {
+      throw ArgumentError.value(minutes, 'minutes', 'Must be 5–120');
+    }
+    final current = _current;
+    if (current.phase != FocusPhase.ready) return;
+    ref.read(sessionLengthProvider.notifier).set(minutes);
+    state = AsyncData(current.changeTarget(Duration(minutes: minutes)));
   }
 
   Future<void> start() => _apply(_current.start(_now()));
@@ -76,6 +92,7 @@ class FocusController extends AsyncNotifier<FocusSession> {
       final record = await _checkpoints.saveRecord(current);
       if (ref.mounted) {
         state = AsyncData(current.markSaved());
+        ref.read(sessionLengthProvider.notifier).set(null);
         ref.read(dataRevisionProvider.notifier).bump();
       }
       return record;
@@ -97,12 +114,34 @@ class FocusController extends AsyncNotifier<FocusSession> {
     }
   }
 
-  /// Discards unsaved progress; the task and target stay selected.
+  /// Reset discards unsaved progress and keeps the task and length, so the
+  /// same session can be tried again. After a save it starts a new session
+  /// with the Settings default length.
   Future<void> reset() async {
     await _checkpoints.clear();
-    if (ref.mounted) state = AsyncData(_current.reset());
+    if (!ref.mounted) return;
+    final current = _current;
+    if (current.phase == FocusPhase.saved) {
+      final minutes = ref.read(effectiveSettingsProvider).sessionMinutes;
+      state =
+          AsyncData(current.reset().changeTarget(Duration(minutes: minutes)));
+    } else {
+      state = AsyncData(current.reset());
+    }
   }
 }
+
+/// A length chosen for the next session only, on the Focus screen or from
+/// the Suggested-task card; null means the Settings default.
+class SessionLengthNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+
+  void set(int? minutes) => state = minutes;
+}
+
+final sessionLengthProvider =
+    NotifierProvider<SessionLengthNotifier, int?>(SessionLengthNotifier.new);
 
 final focusControllerProvider =
     AsyncNotifierProvider<FocusController, FocusSession>(FocusController.new);

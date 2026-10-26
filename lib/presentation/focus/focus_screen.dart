@@ -13,6 +13,7 @@ import '../shell/home_shell.dart';
 import '../widgets/state_views.dart';
 import 'widgets/completion_overlay.dart';
 import 'widgets/review_dialog.dart';
+import 'widgets/session_length_dialog.dart';
 
 class FocusScreen extends ConsumerWidget {
   const FocusScreen({super.key});
@@ -148,6 +149,12 @@ class _FocusBodyState extends ConsumerState<_FocusBody> {
         finished == null ? 0 : session!.recordedMinutesAt(finished));
   }
 
+  Future<void> _changeLength(FocusSession session) async {
+    final minutes =
+        await showSessionLengthDialog(context, session.target.inMinutes);
+    if (minutes != null && mounted) _controller.setSessionLength(minutes);
+  }
+
   /// After the completion moment, Save opens History (navigation map).
   void _completionDone() {
     setState(() => _celebratingMinutes = null);
@@ -197,7 +204,13 @@ class _FocusBodyState extends ConsumerState<_FocusBody> {
       );
     }
 
-    final timer = _TimerDisplay(session: session, now: now);
+    final timer = _TimerDisplay(
+      session: session,
+      now: now,
+      onChangeLength: session.phase == FocusPhase.ready
+          ? () => _changeLength(session)
+          : null,
+    );
     final controls = _Controls(
       session: session,
       onStart: () => _guard(_controller.start),
@@ -295,10 +308,17 @@ class _TaskPicker extends StatelessWidget {
 }
 
 class _TimerDisplay extends StatelessWidget {
-  const _TimerDisplay({required this.session, required this.now});
+  const _TimerDisplay({
+    required this.session,
+    required this.now,
+    this.onChangeLength,
+  });
 
   final FocusSession session;
   final DateTime now;
+
+  /// Set while Ready; makes "of 25 minutes" a button.
+  final VoidCallback? onChangeLength;
 
   static String _label(FocusPhase phase) => switch (phase) {
         FocusPhase.ready => 'Ready',
@@ -341,10 +361,22 @@ class _TimerDisplay extends StatelessWidget {
                   ),
                 ),
               ),
-              Text('of $minutes minutes', style: theme.textTheme.bodyMedium),
+              if (onChangeLength == null)
+                Text('of $minutes minutes', style: theme.textTheme.bodyMedium),
             ],
           ),
         ),
+        // While Ready, the length can be changed for this session only.
+        if (onChangeLength case final change?)
+          TextButton.icon(
+            onPressed: change,
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.expand_more, size: 18),
+            label: Text(
+              'of $minutes minutes',
+              semanticsLabel: 'Session length $minutes minutes, change',
+            ),
+          ),
       ],
     );
   }

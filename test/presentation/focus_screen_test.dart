@@ -11,6 +11,7 @@ import 'package:focus_quest/providers/dashboard_providers.dart';
 
 import '../support/fake_focus_checkpoint_repository.dart';
 import '../support/fake_session_repository.dart';
+import '../support/fake_settings_repository.dart';
 import '../support/fake_task_repository.dart';
 import '../support/test_app.dart';
 
@@ -349,6 +350,94 @@ void main() {
 
     expect(find.text('Running'), findsOneWidget);
     expect(find.text('19:00'), findsOneWidget);
+  });
+
+  group('session length for one session', () {
+    Future<void> setLength(WidgetTester tester, String minutes) async {
+      await tester.tap(find.text('of 25 minutes'));
+      await tester.pumpAndSettle();
+      expect(find.text('Session length'), findsOneWidget);
+      await tester.enterText(
+          find.descendant(
+              of: find.byType(AlertDialog),
+              matching: find.byType(EditableText)),
+          minutes);
+      await tester.tap(find.text('Set'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('can be changed while Ready without touching Settings',
+        (tester) async {
+      final settings = FakeSettingsRepository();
+      final clock = TestClock();
+      final container = await pumpTestApp(tester,
+          tasks: FakeTaskRepository(tasks: _tasks),
+          settings: settings,
+          clock: clock);
+      container.read(selectedTaskIdProvider.notifier).select(1);
+      container.read(selectedTabProvider.notifier).select(AppTab.focus);
+      await tester.pumpAndSettle();
+
+      await setLength(tester, '5');
+
+      expect(find.text('05:00'), findsOneWidget);
+      expect(find.text('of 5 minutes'), findsOneWidget);
+      expect(settings.stored.sessionMinutes, 25);
+
+      // Reaching the chosen length opens the review.
+      await _tap(tester, 'Start');
+      await _elapse(tester, clock, const Duration(minutes: 5));
+      expect(find.text('Review session'), findsOneWidget);
+    });
+
+    testWidgets('refuses lengths outside 5–120 and Cancel keeps the length',
+        (tester) async {
+      await _focusOnTask(tester);
+
+      await setLength(tester, '200');
+      expect(find.textContaining('must be between 5 and 120'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('25:00'), findsOneWidget);
+    });
+
+    testWidgets('cannot be changed once the session has started',
+        (tester) async {
+      await _focusOnTask(tester);
+      await _tap(tester, 'Start');
+
+      expect(find.text('of 25 minutes'), findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'of 25 minutes'), findsNothing);
+    });
+
+    testWidgets(
+        'Reset keeps the length; New session after a save goes back '
+        'to the default', (tester) async {
+      final env = await _focusOnTask(tester);
+      await setLength(tester, '10');
+      await _tap(tester, 'Start');
+      await _elapse(tester, env.clock, const Duration(minutes: 2));
+
+      await tester.tap(find.text('Reset'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(find.text('10:00'), findsOneWidget);
+
+      await _tap(tester, 'Start');
+      await _elapse(tester, env.clock, const Duration(minutes: 3));
+      await _tap(tester, 'Finish');
+      await _tap(tester, 'Save session');
+      await _finishCompletion(tester);
+
+      final container =
+          ProviderScope.containerOf(tester.element(find.byType(HomeShell)));
+      container.read(selectedTabProvider.notifier).select(AppTab.focus);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New session'));
+      await tester.pumpAndSettle();
+      expect(find.text('25:00'), findsOneWidget);
+    });
   });
 
   testWidgets('lays out in landscape at 2x text scale', (tester) async {
