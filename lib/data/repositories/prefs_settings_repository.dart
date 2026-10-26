@@ -17,6 +17,7 @@ class PrefsSettingsRepository implements SettingsRepository {
   static const remindersEnabledKey = 'reminders_enabled';
   static const reminderMinutesKey = 'reminder_minutes';
   static const reducedMotionKey = 'reduced_motion';
+  static const themeModeKey = 'theme_mode';
 
   @override
   Future<AppSettings> load() async {
@@ -36,6 +37,8 @@ class PrefsSettingsRepository implements SettingsRepository {
           (reminder == null ? null : ReminderTime.fromMinutes(reminder)) ??
               d.reminderTime,
       reducedMotion: prefs.getBool(reducedMotionKey) ?? d.reducedMotion,
+      themeMode:
+          AppThemeMode.fromName(prefs.getString(themeModeKey)) ?? d.themeMode,
     );
   }
 
@@ -51,6 +54,7 @@ class PrefsSettingsRepository implements SettingsRepository {
       prefs.setInt(
           reminderMinutesKey, settings.reminderTime.minutesSinceMidnight),
       prefs.setBool(reducedMotionKey, settings.reducedMotion),
+      prefs.setString(themeModeKey, settings.themeMode.name),
     ]);
     if (results.contains(false)) {
       throw StateError('Device storage refused the settings');

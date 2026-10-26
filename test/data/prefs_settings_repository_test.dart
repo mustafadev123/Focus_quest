@@ -55,6 +55,17 @@ void main() {
         throwsArgumentError);
   });
 
+  test('the theme choice is saved and an unknown value means System', () async {
+    await PrefsSettingsRepository()
+        .save(const AppSettings(themeMode: AppThemeMode.dark));
+    expect(
+        (await PrefsSettingsRepository().load()).themeMode, AppThemeMode.dark);
+
+    SharedPreferences.setMockInitialValues({'theme_mode': 'sepia'});
+    expect((await PrefsSettingsRepository().load()).themeMode,
+        AppThemeMode.system);
+  });
+
   test('reminder time converts to and from minutes since midnight', () {
     expect(const ReminderTime(19, 5).minutesSinceMidnight, 1145);
     expect(ReminderTime.fromMinutes(1145), const ReminderTime(19, 5));

@@ -24,7 +24,10 @@ Switch _switch(WidgetTester tester, String label) =>
         matching: find.byType(Switch)));
 
 Future<void> _save(WidgetTester tester) async {
+  await tester.scrollUntilVisible(find.text('Save settings'), 200,
+      scrollable: find.byType(Scrollable).first);
   await tester.ensureVisible(find.text('Save settings'));
+  await tester.pumpAndSettle();
   await tester.tap(find.text('Save settings'));
   await tester.pumpAndSettle();
 }
@@ -105,7 +108,7 @@ void main() {
     expect(find.text("Couldn't load your settings."), findsOneWidget);
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
-    expect(find.text('Save settings'), findsOneWidget);
+    expect(find.text('Focus duration'), findsOneWidget);
   });
 
   testWidgets('the saved focus duration becomes the Focus target',
@@ -136,7 +139,7 @@ void main() {
   testWidgets('Reduced motion turns animations off across the app',
       (tester) async {
     await _openSettings(tester);
-    final context = tester.element(find.text('Save settings'));
+    final context = tester.element(find.text('Focus duration'));
     expect(MediaQuery.disableAnimationsOf(context), isFalse);
 
     await tester.tap(find.text('Reduced motion'));
@@ -145,7 +148,7 @@ void main() {
 
     expect(
         MediaQuery.disableAnimationsOf(
-            tester.element(find.text('Save settings'))),
+            tester.element(find.text('Focus duration'))),
         isTrue);
   });
 

@@ -35,6 +35,7 @@ class AppSettings {
     this.remindersEnabled = false,
     this.reminderTime = defaultReminderTime,
     this.reducedMotion = false,
+    this.themeMode = AppThemeMode.system,
   });
 
   static const defaultSessionMinutes = 25;
@@ -50,6 +51,9 @@ class AppSettings {
   /// accessibility setting.
   final bool reducedMotion;
 
+  /// Light or dark appearance; System follows the phone.
+  final AppThemeMode themeMode;
+
   bool get isValid => validateEstimatedMinutes(sessionMinutes) == null;
 
   AppSettings copyWith({
@@ -57,12 +61,14 @@ class AppSettings {
     bool? remindersEnabled,
     ReminderTime? reminderTime,
     bool? reducedMotion,
+    AppThemeMode? themeMode,
   }) {
     return AppSettings(
       sessionMinutes: sessionMinutes ?? this.sessionMinutes,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
       reminderTime: reminderTime ?? this.reminderTime,
       reducedMotion: reducedMotion ?? this.reducedMotion,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -72,13 +78,33 @@ class AppSettings {
       other.sessionMinutes == sessionMinutes &&
       other.remindersEnabled == remindersEnabled &&
       other.reminderTime == reminderTime &&
-      other.reducedMotion == reducedMotion;
+      other.reducedMotion == reducedMotion &&
+      other.themeMode == themeMode;
 
   @override
   int get hashCode => Object.hash(
-      sessionMinutes, remindersEnabled, reminderTime, reducedMotion);
+      sessionMinutes, remindersEnabled, reminderTime, reducedMotion, themeMode);
 
   @override
   String toString() => 'AppSettings($sessionMinutes min, reminders '
-      '$remindersEnabled at $reminderTime, reducedMotion $reducedMotion)';
+      '$remindersEnabled at $reminderTime, reducedMotion $reducedMotion, '
+      'theme ${themeMode.name})';
+}
+
+/// The Theme choice from the Settings wireframe.
+enum AppThemeMode {
+  system('System'),
+  light('Light'),
+  dark('Dark');
+
+  const AppThemeMode(this.label);
+
+  final String label;
+
+  static AppThemeMode? fromName(String? name) {
+    for (final mode in values) {
+      if (mode.name == name) return mode;
+    }
+    return null;
+  }
 }

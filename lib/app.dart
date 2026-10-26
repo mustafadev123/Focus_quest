@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'domain/models/app_settings.dart';
 import 'presentation/shell/home_shell.dart';
 import 'presentation/theme.dart';
 import 'providers/notification_providers.dart';
@@ -37,12 +38,19 @@ class _FocusQuestAppState extends ConsumerState<FocusQuestApp> {
     // Keep scheduled notifications in step with settings and the session.
     ref.watch(reminderSyncProvider);
     ref.watch(sessionAlertSyncProvider);
-    final reducedMotion = ref.watch(effectiveSettingsProvider).reducedMotion;
+    final settings = ref.watch(effectiveSettingsProvider);
+    final reducedMotion = settings.reducedMotion;
 
     return MaterialApp(
       title: 'FocusQuest',
       debugShowCheckedModeBanner: false,
-      theme: buildFocusQuestTheme(),
+      theme: buildFocusQuestTheme(Brightness.light),
+      darkTheme: buildFocusQuestTheme(Brightness.dark),
+      themeMode: switch (settings.themeMode) {
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      },
       // The in-app Reduced motion setting joins the phone's own setting, so
       // every animation that checks disableAnimations honours either one.
       builder: (context, child) {

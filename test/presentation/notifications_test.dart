@@ -46,7 +46,8 @@ Future<ProviderContainer> _open(
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
-  await tester.ensureVisible(find.text(text));
+  await tester.scrollUntilVisible(find.text(text), 200,
+      scrollable: find.byType(Scrollable).first);
   await tester.tap(find.text(text));
   await tester.pumpAndSettle();
 }

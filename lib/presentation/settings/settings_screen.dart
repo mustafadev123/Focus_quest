@@ -83,11 +83,13 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
       await ref.read(settingsProvider.notifier).save(_draft);
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      // Snack bars use the inverse surface, so the icon follows it.
+      final iconColor = Theme.of(context).colorScheme.onInverseSurface;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(children: [
-          Icon(Icons.check, color: Colors.white),
-          SizedBox(width: 12),
-          Text('Settings saved'),
+          Icon(Icons.check, color: iconColor),
+          const SizedBox(width: 12),
+          const Text('Settings saved'),
         ]),
       ));
     } catch (_) {
@@ -186,6 +188,33 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               onChanged: _saving
                   ? null
                   : (on) => _edit(_draft.copyWith(reducedMotion: on)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _Section(
+          children: [
+            Text.rich(TextSpan(children: [
+              TextSpan(text: 'Theme', style: bold),
+              TextSpan(text: ' (optional)', style: muted),
+            ])),
+            const SizedBox(height: 8),
+            SegmentedButton<AppThemeMode>(
+              segments: [
+                for (final mode in AppThemeMode.values)
+                  ButtonSegment(value: mode, label: Text(mode.label)),
+              ],
+              selected: {_draft.themeMode},
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: theme.colorScheme.primary,
+                selectedForegroundColor: theme.colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6)),
+              ),
+              onSelectionChanged: _saving
+                  ? null
+                  : (s) => _edit(_draft.copyWith(themeMode: s.single)),
             ),
           ],
         ),

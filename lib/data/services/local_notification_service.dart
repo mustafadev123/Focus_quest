@@ -48,7 +48,9 @@ class LocalNotificationService implements NotificationService {
     tz_data.initializeTimeZones();
     await _plugin.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        // Monochrome status-bar icon; the full-colour logo would show as a
+        // plain square.
+        android: AndroidInitializationSettings('@drawable/ic_notification'),
       ),
     );
   }
