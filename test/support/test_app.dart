@@ -1,3 +1,5 @@
+import 'dart:ui' show Size;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_quest/app.dart';
@@ -18,6 +20,14 @@ import 'fake_task_repository.dart';
 
 /// Fixed "now" for widget tests: Sunday 25 October 2026, 18:00.
 final testNow = DateTime(2026, 10, 25, 18);
+
+/// A tall test surface (800×1600) so long screens such as History build
+/// their lower rows without scrolling. Reset after the test.
+void useTallScreen(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}
 
 /// A clock tests can move forward.
 class TestClock {

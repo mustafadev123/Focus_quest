@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/history.dart';
+import '../domain/insights.dart';
 import '../domain/models/session_record.dart';
 import '../domain/models/study_session.dart';
 import '../domain/repositories/session_repository.dart';
@@ -58,6 +59,23 @@ final historyRecordsProvider = FutureProvider<List<SessionRecord>>((ref) {
         subject: filter.subject,
         from: filter.range.startAt(now),
       ));
+});
+
+/// Minutes per day for the last seven days, for the History chart. Uses the
+/// task and subject filters but not the date filter, and refreshes after
+/// every session save, edit or delete.
+final dailyMinutesProvider = FutureProvider<List<DayTotal>>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final filter = ref.watch(historyFilterProvider);
+  final now = ref.watch(clockProvider)();
+  final records = await ref.watch(sessionRepositoryProvider).getRecords(
+        SessionFilter(
+          taskId: filter.taskId,
+          subject: filter.subject,
+          from: chartStart(now),
+        ),
+      );
+  return dailyMinutes(records, now);
 });
 
 typedef HistoryAggregator = Future<HistorySummary> Function(

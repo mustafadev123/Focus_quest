@@ -50,8 +50,13 @@ FakeSessionRepository _sessions() => FakeSessionRepository(records: [
       ..taskInfo[1] = ('Lab 3 report', 'Physics')
       ..taskInfo[2] = ('Calculus practice', 'Calculus');
 
+/// Opens History on a tall screen unless [tall] is false, for tests that
+/// set their own screen size.
 Future<void> _openHistory(WidgetTester tester,
-    {FakeSessionRepository? sessions, FakeTaskRepository? tasks}) async {
+    {FakeSessionRepository? sessions,
+    FakeTaskRepository? tasks,
+    bool tall = true}) async {
+  if (tall) useTallScreen(tester);
   final container = await pumpTestApp(tester,
       tasks: tasks ?? FakeTaskRepository(tasks: _tasks),
       sessions: sessions ?? _sessions());
@@ -267,7 +272,7 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    await _openHistory(tester);
+    await _openHistory(tester, tall: false);
     expect(tester.takeException(), isNull);
   });
 }

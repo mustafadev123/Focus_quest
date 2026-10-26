@@ -179,18 +179,27 @@ class _SuggestionState extends ConsumerState<_Suggestion> {
                   border: Border.all(color: theme.colorScheme.outline),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: available,
-                    items: [
-                      for (final m in choices)
-                        DropdownMenuItem(value: m, child: Text('$m min')),
-                    ],
-                    onChanged: (m) {
-                      if (m != null) {
-                        ref.read(availableMinutesProvider.notifier).set(m);
-                      }
-                    },
+                // Sized to its label, shrinking with an ellipsis instead of
+                // overflowing at large text sizes.
+                child: IntrinsicWidth(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: available,
+                      isExpanded: true,
+                      items: [
+                        for (final m in choices)
+                          DropdownMenuItem(
+                            value: m,
+                            child: Text('$m min',
+                                maxLines: 1, overflow: TextOverflow.ellipsis),
+                          ),
+                      ],
+                      onChanged: (m) {
+                        if (m != null) {
+                          ref.read(availableMinutesProvider.notifier).set(m);
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),

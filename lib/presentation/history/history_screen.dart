@@ -14,6 +14,7 @@ import '../format.dart';
 import '../shell/home_shell.dart';
 import '../widgets/state_views.dart';
 import 'report_screen.dart';
+import 'widgets/daily_minutes_chart.dart';
 import 'widgets/session_dialog.dart';
 
 /// Whether any session exists at all, to tell "No sessions yet" apart from
@@ -73,6 +74,12 @@ class _HistoryList extends ConsumerWidget {
         _Filters(tasks: tasks),
         const SizedBox(height: 16),
         _SummaryRow(summary: summary),
+        // Approved addition: the seven-day chart sits between the summary
+        // and the list. The "No sessions yet" state keeps its wireframe.
+        if (hasAny) ...[
+          const SizedBox(height: 12),
+          _ChartSection(tasks: tasks),
+        ],
         const Divider(height: 24),
         if (!hasAny)
           _NoSessions(
@@ -166,6 +173,37 @@ Future<void> _confirmDelete(
   } catch (_) {
     messenger.showSnackBar(const SnackBar(
         content: Text("Couldn't delete the session. Try again.")));
+  }
+}
+
+class _ChartSection extends ConsumerWidget {
+  const _ChartSection({required this.tasks});
+
+  final List<StudyTask> tasks;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(historyFilterProvider);
+    final task = tasks.where((t) => t.id == filter.taskId).firstOrNull;
+    final scope = '${task?.title ?? 'All tasks'} · '
+        '${filter.subject ?? 'All subjects'}';
+
+    return switch (ref.watch(dailyMinutesProvider)) {
+      AsyncValue(:final value?) => DailyMinutesChart(days: value, scope: scope),
+      AsyncError() => Row(
+          children: [
+            const Expanded(child: Text("Couldn't load the chart.")),
+            TextButton(
+              onPressed: () => ref.invalidate(dailyMinutesProvider),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      _ => const SizedBox(
+          height: 48,
+          child: Center(child: Text('Loading chart…')),
+        ),
+    };
   }
 }
 

@@ -36,6 +36,7 @@ FakeSessionRepository _sessions() => FakeSessionRepository(records: [
 
 Future<void> _openReport(WidgetTester tester, FakeReportFileService reports,
     {FakeSessionRepository? sessions}) async {
+  useTallScreen(tester);
   final container = await pumpTestApp(tester,
       tasks: FakeTaskRepository(tasks: [_task]),
       sessions: sessions ?? _sessions(),
@@ -99,6 +100,7 @@ void main() {
 
   testWidgets('the report follows the History filters', (tester) async {
     final reports = FakeReportFileService();
+    useTallScreen(tester);
     final container = await pumpTestApp(tester,
         tasks: FakeTaskRepository(tasks: [_task]),
         sessions: _sessions(),

@@ -168,6 +168,20 @@ void main() {
     expect(find.text('No tasks yet'), findsOneWidget);
   });
 
+  testWidgets('the Available time dropdown does not overflow at 2x text',
+      (tester) async {
+    // The width at which the dropdown used to overflow by 13 pixels.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await pumpTestApp(tester, tasks: FakeTaskRepository(tasks: [_a, _b]));
+    expect(tester.takeException(), isNull);
+    expect(_inCard('25 min'), findsOneWidget);
+  });
+
   testWidgets('Use task is refused while a focus session is in progress',
       (tester) async {
     final running =
