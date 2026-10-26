@@ -101,6 +101,15 @@ class FocusSession {
 
   Duration remainingAt(DateTime now) => target - activeAt(now);
 
+  /// When a running session will reach its target if left running; null
+  /// in any other phase. Used to schedule the session-end alert.
+  DateTime? get targetReachedAt {
+    final resumed = lastResumedAt;
+    if (phase != FocusPhase.running || resumed == null) return null;
+    final left = target - activeBeforeResume;
+    return resumed.add(left.isNegative ? Duration.zero : left);
+  }
+
   /// True once a running session has used its whole target; the screen then
   /// opens the review, but never saves on its own.
   bool reachedTargetAt(DateTime now) =>

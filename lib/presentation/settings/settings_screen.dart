@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/app_settings.dart';
 import '../../domain/validation/validation.dart';
+import '../../providers/notification_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../widgets/state_views.dart';
 
@@ -46,6 +47,21 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
         _draft = next;
         _failed = false;
       });
+
+  /// Turning the reminder on asks for notification permission the first
+  /// time. The choice is kept even if permission is denied; Settings then
+  /// explains how to allow notifications, and the rest of the app works.
+  Future<void> _toggleReminder(bool on) async {
+    _edit(_draft.copyWith(remindersEnabled: on));
+    if (!on) return;
+    final service = ref.read(notificationServiceProvider);
+    try {
+      if (!await service.areEnabled()) await service.requestPermission();
+    } catch (_) {
+      // Treated as not allowed; the notifications-off card says so.
+    }
+    ref.invalidate(notificationsAllowedProvider);
+  }
 
   Future<void> _pickReminderTime() async {
     final picked = await showTimePicker(
@@ -135,9 +151,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             _SwitchRow(
               label: 'Daily reminder',
               value: _draft.remindersEnabled,
-              onChanged: _saving
-                  ? null
-                  : (on) => _edit(_draft.copyWith(remindersEnabled: on)),
+              onChanged: _saving ? null : _toggleReminder,
             ),
             const SizedBox(height: 8),
             Row(
@@ -158,6 +172,11 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             ),
           ],
         ),
+        if (_draft.remindersEnabled &&
+            ref.watch(notificationsAllowedProvider).value == false) ...[
+          const SizedBox(height: 12),
+          const _NotificationsOff(),
+        ],
         const SizedBox(height: 12),
         _Section(
           children: [
@@ -198,6 +217,40 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The "Notifications are off" state from the Settings wireframe.
+class _NotificationsOff extends ConsumerWidget {
+  const _NotificationsOff();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Semantics(
+      liveRegion: true,
+      child: _Section(
+        children: [
+          Text('Notifications are off for FocusQuest.',
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          const Text('To get reminders, turn on notifications in your phone '
+              'settings. Everything else works without them.'),
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: OutlinedButton(
+              onPressed: () => ref
+                  .read(notificationServiceProvider)
+                  .openSystemSettings()
+                  .catchError((Object _) {}),
+              child: const Text('Open phone settings'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

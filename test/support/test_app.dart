@@ -4,9 +4,11 @@ import 'package:focus_quest/app.dart';
 import 'package:focus_quest/domain/history.dart';
 import 'package:focus_quest/providers/core_providers.dart';
 import 'package:focus_quest/providers/history_providers.dart';
+import 'package:focus_quest/providers/notification_providers.dart';
 import 'package:focus_quest/providers/settings_providers.dart';
 
 import 'fake_focus_checkpoint_repository.dart';
+import 'fake_notification_service.dart';
 import 'fake_session_repository.dart';
 import 'fake_settings_repository.dart';
 import 'fake_task_repository.dart';
@@ -34,6 +36,7 @@ Future<ProviderContainer> pumpTestApp(
   FakeSessionRepository? sessions,
   FakeFocusCheckpointRepository? checkpoints,
   FakeSettingsRepository? settings,
+  FakeNotificationService? notifications,
   DateTime? now,
   TestClock? clock,
   bool settle = true,
@@ -50,6 +53,8 @@ Future<ProviderContainer> pumpTestApp(
       clockProvider.overrideWithValue(testClock.call),
       settingsRepositoryProvider
           .overrideWithValue(settings ?? FakeSettingsRepository()),
+      notificationServiceProvider
+          .overrideWithValue(notifications ?? FakeNotificationService()),
       // Real isolates do not run inside the widget-test fake clock.
       historyAggregatorProvider
           .overrideWithValue((records) async => summarizeHistory(records)),
