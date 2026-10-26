@@ -70,6 +70,7 @@ void main() {
       expect(r.task, a);
       expect(r.usedHistory, isFalse);
       expect(r.reasons.last, contains('No study history'));
+      expect(SmartHelper.baseline([a, b]), a);
     });
 
     test('No eligible task: none, or every task completed', () {
@@ -124,6 +125,7 @@ void main() {
       final r = _recommend([second, first], 30);
       expect(_scoreOf(r, 1), _scoreOf(r, 2));
       expect(r.task, first);
+      expect(SmartHelper.baseline([second, first]), first);
 
       final sameTimeHigh = _task(7, 2, 30);
       final sameTimeLow = _task(4, 2, 30);
@@ -139,6 +141,7 @@ void main() {
       expect(_scoreOf(r, 1), closeTo(0.525, 1e-9));
       expect(_scoreOf(r, 2), closeTo(0.75, 0.005));
       expect(r.task, y);
+      expect(SmartHelper.baseline([x, y]), x); // only because X is older
     });
   });
 
