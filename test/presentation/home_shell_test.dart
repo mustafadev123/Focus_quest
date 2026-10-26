@@ -1,25 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:focus_quest/app.dart';
 import 'package:focus_quest/presentation/shell/home_shell.dart';
 
-Future<ProviderContainer> pumpApp(WidgetTester tester) async {
-  final container = ProviderContainer();
-  addTearDown(container.dispose);
-  await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: const FocusQuestApp(),
-    ),
-  );
-  return container;
-}
+import '../support/test_app.dart';
 
 void main() {
   testWidgets('starts on the Dashboard with four labelled destinations',
       (tester) async {
-    await pumpApp(tester);
+    await pumpTestApp(tester);
 
     expect(find.text('FocusQuest'), findsOneWidget);
     for (final label in ['Tasks', 'Focus', 'History', 'Settings']) {
@@ -34,7 +22,7 @@ void main() {
   });
 
   testWidgets('tapping a destination shows that screen', (tester) async {
-    await pumpApp(tester);
+    await pumpTestApp(tester);
 
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
@@ -51,7 +39,7 @@ void main() {
 
   testWidgets('other screens can switch tabs through the provider',
       (tester) async {
-    final container = await pumpApp(tester);
+    final container = await pumpTestApp(tester);
 
     container.read(selectedTabProvider.notifier).select(AppTab.focus);
     await tester.pumpAndSettle();
@@ -69,7 +57,7 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    await pumpApp(tester);
+    await pumpTestApp(tester);
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
 
