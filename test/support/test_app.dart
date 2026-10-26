@@ -4,11 +4,14 @@ import 'package:focus_quest/app.dart';
 import 'package:focus_quest/domain/history.dart';
 import 'package:focus_quest/providers/core_providers.dart';
 import 'package:focus_quest/providers/history_providers.dart';
+import 'package:focus_quest/domain/report/study_report.dart';
 import 'package:focus_quest/providers/notification_providers.dart';
+import 'package:focus_quest/providers/report_providers.dart';
 import 'package:focus_quest/providers/settings_providers.dart';
 
 import 'fake_focus_checkpoint_repository.dart';
 import 'fake_notification_service.dart';
+import 'fake_report_file_service.dart';
 import 'fake_session_repository.dart';
 import 'fake_settings_repository.dart';
 import 'fake_task_repository.dart';
@@ -37,6 +40,7 @@ Future<ProviderContainer> pumpTestApp(
   FakeFocusCheckpointRepository? checkpoints,
   FakeSettingsRepository? settings,
   FakeNotificationService? notifications,
+  FakeReportFileService? reports,
   DateTime? now,
   TestClock? clock,
   bool settle = true,
@@ -55,6 +59,10 @@ Future<ProviderContainer> pumpTestApp(
           .overrideWithValue(settings ?? FakeSettingsRepository()),
       notificationServiceProvider
           .overrideWithValue(notifications ?? FakeNotificationService()),
+      reportFileServiceProvider
+          .overrideWithValue(reports ?? FakeReportFileService()),
+      reportBuilderProvider
+          .overrideWithValue((input) async => buildStudyReport(input)),
       // Real isolates do not run inside the widget-test fake clock.
       historyAggregatorProvider
           .overrideWithValue((records) async => summarizeHistory(records)),

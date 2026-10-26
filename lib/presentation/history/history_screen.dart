@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../domain/history.dart';
 import '../../domain/models/session_record.dart';
 import '../../domain/models/study_task.dart';
+import '../../domain/report/study_report.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/history_providers.dart';
@@ -12,6 +13,7 @@ import '../../providers/task_providers.dart';
 import '../format.dart';
 import '../shell/home_shell.dart';
 import '../widgets/state_views.dart';
+import 'report_screen.dart';
 import 'widgets/session_dialog.dart';
 
 /// Whether any session exists at all, to tell "No sessions yet" apart from
@@ -102,7 +104,34 @@ class _HistoryList extends ConsumerWidget {
             child: const Text('Add session'),
           ),
         ),
+        const SizedBox(height: 4),
+        Center(
+          child: TextButton(
+            onPressed: () => _openReport(context, ref),
+            child: const Text(
+              'Text report',
+              semanticsLabel: 'Save and view a text report of these sessions',
+              style: TextStyle(decoration: TextDecoration.underline),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  /// Reports exactly what History is showing, with its filters.
+  void _openReport(BuildContext context, WidgetRef ref) {
+    final filter = ref.read(historyFilterProvider);
+    final task = tasks.where((t) => t.id == filter.taskId).firstOrNull;
+    ReportScreen.open(
+      context,
+      StudyReportInput(
+        generatedAt: ref.read(clockProvider)(),
+        periodLabel: filter.range.label,
+        taskLabel: task?.title ?? 'All tasks',
+        subjectLabel: filter.subject ?? 'All subjects',
+        records: records,
+      ),
     );
   }
 }
