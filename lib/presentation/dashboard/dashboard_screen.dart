@@ -6,6 +6,7 @@ import '../../domain/models/study_task.dart';
 import '../../providers/dashboard_providers.dart';
 import '../../providers/task_providers.dart';
 import '../shell/home_shell.dart';
+import '../task_actions.dart';
 import '../task_form/task_form_screen.dart';
 import '../widgets/state_views.dart';
 import 'widgets/summary_card.dart';
@@ -84,6 +85,7 @@ class _TaskList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(statusFilterProvider);
     final visible = ref.watch(visibleTasksProvider).value ?? const [];
+    final selectedId = ref.watch(selectedTaskIdProvider);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -120,10 +122,18 @@ class _TaskList extends ConsumerWidget {
           )
         else
           for (final task in visible) ...[
-            TaskCard(
+            _SwipeToDelete(
               key: ValueKey(task.id),
               task: task,
-              onFocus: task.isCompleted ? null : () => _focus(ref, task),
+              child: TaskCard(
+                task: task,
+                selected: task.id == selectedId,
+                onTap: () =>
+                    ref.read(selectedTaskIdProvider.notifier).select(task.id),
+                onFocus: task.isCompleted ? null : () => _focus(ref, task),
+                onEdit: () => TaskFormScreen.open(context, taskId: task.id),
+                onDelete: () => confirmAndDeleteTask(context, ref, task),
+              ),
             ),
             const SizedBox(height: 8),
           ],
@@ -138,6 +148,45 @@ class _TaskList extends ConsumerWidget {
   void _focus(WidgetRef ref, StudyTask task) {
     ref.read(selectedTaskIdProvider.notifier).select(task.id);
     ref.read(selectedTabProvider.notifier).select(AppTab.focus);
+  }
+}
+
+/// Swipe left to delete. The card always slides back; if the deletion is
+/// confirmed, the refreshed list removes it.
+class _SwipeToDelete extends ConsumerWidget {
+  const _SwipeToDelete({super.key, required this.task, required this.child});
+
+  final StudyTask task;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    return Dismissible(
+      key: ValueKey('dismiss-${task.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Delete', style: TextStyle(color: scheme.onPrimary)),
+            const SizedBox(width: 8),
+            Icon(Icons.delete_outline, color: scheme.onPrimary),
+          ],
+        ),
+      ),
+      confirmDismiss: (_) async {
+        await confirmAndDeleteTask(context, ref, task);
+        return false;
+      },
+      child: child,
+    );
   }
 }
 

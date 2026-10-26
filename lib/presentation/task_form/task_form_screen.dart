@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/study_task.dart';
 import '../../domain/validation/validation.dart';
 import '../../providers/task_providers.dart';
+import '../task_actions.dart';
 import '../widgets/state_views.dart';
 import 'widgets/minutes_field.dart';
 
@@ -83,6 +84,11 @@ class _TaskFormState extends ConsumerState<_TaskForm> {
   bool _saveFailed = false;
 
   bool get _isEdit => widget.initial != null;
+
+  Future<void> _delete() async {
+    final deleted = await confirmAndDeleteTask(context, ref, widget.initial!);
+    if (deleted && mounted) Navigator.of(context).pop();
+  }
 
   @override
   void initState() {
@@ -283,6 +289,13 @@ class _TaskFormState extends ConsumerState<_TaskForm> {
                   ),
                 ],
               ),
+              if (_isEdit) ...[
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: _saving ? null : _delete,
+                  child: const Text('Delete task'),
+                ),
+              ],
             ],
           ),
         ),
