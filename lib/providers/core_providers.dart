@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../data/repositories/sqlite_focus_checkpoint_repository.dart';
 import '../data/repositories/sqlite_session_repository.dart';
 import '../data/repositories/sqlite_task_repository.dart';
 import '../domain/clock.dart';
+import '../domain/repositories/focus_checkpoint_repository.dart';
 import '../domain/repositories/session_repository.dart';
 import '../domain/repositories/task_repository.dart';
 
@@ -24,6 +26,13 @@ final taskRepositoryProvider = Provider<TaskRepository>(
 
 final sessionRepositoryProvider = Provider<SessionRepository>(
   (ref) => SqliteSessionRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final focusCheckpointRepositoryProvider = Provider<FocusCheckpointRepository>(
+  (ref) => SqliteFocusCheckpointRepository(
     ref.watch(databaseProvider),
     clock: ref.watch(clockProvider),
   ),

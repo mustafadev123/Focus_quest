@@ -8,7 +8,9 @@ import 'package:sqflite/sqflite.dart';
 /// skips it.
 abstract final class AppDatabase {
   static const fileName = 'focus_quest.db';
-  static const version = 1;
+  /// 2: `active_session.finished_at`, so a session awaiting save survives a
+  /// restart.
+  static const version = 2;
 
   static const tasksTable = 'study_tasks';
   static const sessionsTable = 'study_sessions';
@@ -27,8 +29,16 @@ abstract final class AppDatabase {
         version: version,
         onConfigure: _onConfigure,
         onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
       ),
     );
+  }
+
+  static Future<void> _onUpgrade(Database db, int from, int to) async {
+    if (from < 2) {
+      await db.execute(
+          'ALTER TABLE $activeSessionTable ADD COLUMN finished_at INTEGER');
+    }
   }
 
   static Future<void> _onConfigure(Database db) async {
@@ -84,7 +94,8 @@ abstract final class AppDatabase {
         elapsed_active_ms INTEGER NOT NULL CHECK (elapsed_active_ms >= 0),
         target_minutes INTEGER NOT NULL
           CHECK (target_minutes BETWEEN 5 AND 120),
-        last_resumed_at INTEGER
+        last_resumed_at INTEGER,
+        finished_at INTEGER
       )
     ''');
 
