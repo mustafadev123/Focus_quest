@@ -30,7 +30,7 @@ For each eligible task:
 
 The final score is:
 
-Score = 0.50P + 0.30F + 0.20R
+**Score = 0.50P + 0.30F + 0.20R**
 
 The helper recommends the eligible task with the highest score.
 
@@ -42,12 +42,12 @@ The explanation will identify how task priority, available-time fit, and recent 
 
 The helper will support these behaviors:
 
-- Accept: select the recommended task without automatically starting a session.
-- Dismiss: hide or decline the recommendation.
-- Override: allow the student to choose another task.
-- No eligible tasks: display a message prompting the student to create a task.
-- No study history: calculate a recommendation using available task information and clearly disclose that no history was available.
-- Invalid input: show an understandable error or exclude invalid task data.
+- **Accept:** select the recommended task without automatically starting a session.
+- **Dismiss:** hide or decline the recommendation.
+- **Override:** allow the student to choose another task.
+- **No eligible tasks:** display a message prompting the student to create a task.
+- **No study history:** calculate a recommendation using available task information and clearly disclose that no history was available.
+- **Invalid input:** show an understandable error or exclude invalid task data.
 
 The helper will not silently create, update, or delete records.
 
@@ -77,12 +77,22 @@ The primary metric will be top-choice agreement with the predefined acceptable c
 
 Actual evaluation results will be added only after running the tests. Expected results and synthetic examples will not be presented as completed experiments.
 
-## 7. Limitations
+### 6.1 Held-Out Evaluation Scenarios
 
-The helper does not model deadlines, exam dates, task dependencies, or the student's actual understanding of a subject. A high score does not guarantee that a task is the best real-world choice.
+The following five scenarios are proposed for evaluation. Record the expected acceptable choice before running the helper or baseline, and do not use these scenarios to tune the scoring formula before evaluating them.
 
-The helper is intended to support student decision-making, not replace it.
+| Scenario | Input or condition | Expected behavior to verify |
+|---|---|---|
+| 1. Single eligible task | One valid, noncompleted task | Recommend the only eligible task. |
+| 2. Different priorities | Multiple valid tasks with different priorities and durations | Calculate every eligible task's score and select the highest-scoring task. Compare it with the highest-priority baseline. |
+| 3. Available-time fit | Available time is shorter than the estimated durations of multiple tasks | Apply the defined fit formula and rank tasks by their final scores. |
+| 4. Completed high-priority task | The highest-priority task is completed, while at least one valid task remains incomplete | Exclude the completed task and recommend from the eligible tasks. |
+| 5. Equal scores | Two eligible tasks have equal scores | Choose the oldest task; if creation times match, choose the lowest task ID. |
 
-## 8. Implementation Status
+These are planned scenarios, not completed experiments. Before evaluation, define concrete task values, recent-study totals, expected scores, acceptable choices, and the baseline choice for each case.
 
-This document describes the planned feature. The helper, baseline, held-out evaluation, and actual results will be updated as implementation and testing are completed, following instructor approval.
+### 6.2 Evaluation Procedure
+
+1. Prepare the concrete test inputs and record expected acceptable choices before execution.
+2. Run the helper and the baseline against the same scenario inputs.
+3. Record the helper's actual recommendation, the baseline recommendation, and whether each
