@@ -41,3 +41,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Raw coverage data; the readable summary is COVERAGE.md
+/coverage/
