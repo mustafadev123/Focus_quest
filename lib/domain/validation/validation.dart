@@ -73,6 +73,14 @@ String? validateSessionStart(DateTime? startedAt, DateTime now) {
   return null;
 }
 
+/// A manually recorded session must also have finished by [now].
+String? validateSessionEnd(DateTime startedAt, int minutes, DateTime now) {
+  if (startedAt.add(Duration(minutes: minutes)).isAfter(now)) {
+    return 'This session would end in the future';
+  }
+  return null;
+}
+
 /// Parses a numeric text field; returns null for blank or non-numeric input.
 int? parseMinutes(String? text) => int.tryParse(text?.trim() ?? '');
 

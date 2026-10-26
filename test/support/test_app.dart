@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_quest/app.dart';
+import 'package:focus_quest/domain/history.dart';
 import 'package:focus_quest/providers/core_providers.dart';
+import 'package:focus_quest/providers/history_providers.dart';
 
 import 'fake_focus_checkpoint_repository.dart';
 import 'fake_session_repository.dart';
@@ -43,6 +45,9 @@ Future<ProviderContainer> pumpTestApp(
       focusCheckpointRepositoryProvider.overrideWithValue(
           checkpoints ?? FakeFocusCheckpointRepository(sessions: sessionRepo)),
       clockProvider.overrideWithValue(testClock.call),
+      // Real isolates do not run inside the widget-test fake clock.
+      historyAggregatorProvider
+          .overrideWithValue((records) async => summarizeHistory(records)),
     ],
   );
   addTearDown(container.dispose);
