@@ -31,6 +31,9 @@ flutter test integration_test -d <device-id>  # on-device integration tests
 | Coverage | `flutter test --coverage` | `917dbe6` | **95.4%** (2383 of 2498 measured lines) |
 | Integration tests | `flutter test integration_test -d R5CYA0BD7ET` | `917dbe6` | **5 / 5 passed** on the Samsung phone (47 s) |
 
+| Release build | `flutter build apk --release` | `917dbe6` | Built `build/app/outputs/flutter-apk/app-release.apk` (54.1 MB, 192 s). Min SDK 24, target SDK 36, version 1.0.0. |
+| Release install and launch | `flutter install -d R5CYA0BD7ET --release`, then launched with `adb` | `917dbe6` | Installed. The app started and was still running 8 s later, with no crash or Flutter error in the device log. **This shows it starts; it does not verify the features in the release build.** |
+
 **Notes on the integration run:**
 - **The first attempt on `917dbe6` ran no tests.** All five were reported "did not complete" at 0:00, before any test started. The test app failed to launch or connect, most likely because the phone had just been reconnected. No assertion failed. The immediate second attempt built, installed and passed all five.
 - **During the History test, Flutter warned that one tap landed on the scrolling list** at (316.1, 596.8) instead of its target. The test still passed, so all of its checks held, but the tap's positioning should be made more robust.
@@ -153,7 +156,12 @@ Not done or not recorded:
 3. **Landscape on a phone:** Dashboard (list beside summary), Focus, History with the chart, Settings.
 4. **TalkBack and large system font:** the core flow (add task → focus → save → History).
 5. **Airplane mode:** the core flow with networking off.
-6. **Release APK:** install and smoke test (section 9).
+6. **Release APK, manual pass:** it is installed and launches (section 3). Still to check by hand:
+   - add a task
+   - run and save a focus session
+   - confirm it appears in History
+   - change a setting, close and reopen the app
+   - confirm the task, session and setting are all still there
 7. **History chart on the phone:** the integration tests pass through History with the chart on screen but do not check it. Look at it by eye in light and dark mode.
 
 ## 8. Failures found during testing, and fixes
@@ -176,5 +184,5 @@ Not done or not recorded:
 - **Notifications:** scheduling is inexact, so alerts may arrive a few minutes late on a sleeping phone. The daily reminder repeats at a fixed moment, so after a daylight-saving change it is off by an hour until the app is next opened. The plugin wrapper and `main.dart` are not covered by automated tests.
 - **The chart counts a session wholly on the day it started**, even if it ran past midnight.
 - **Helper quality** has only been checked on development examples, not on held-out cases.
-- **Release build:** not yet built and installed (see the release APK step).
+- **Release build:** built and launches, but no feature has been checked by hand in it. Release builds are compiled differently from the debug builds the tests use. It is signed with the debug key.
 - **One integration-test tap** in the History test landed on the list rather than its target (section 3). The test passed, but that tap should be positioned more robustly.
