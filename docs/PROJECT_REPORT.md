@@ -153,6 +153,6 @@ Code and test locations for each area, and the git commit record, are in [CONTRI
 
 **Kanban evidence:** the team reports that the instructor waived this requirement. ClickUp screenshots will be attached by Praneeth (*pending*).
 
-**Presentation:** recorded as `FocusQuest_Presentation.mp4` (16 min 39 s). *Video link: pending.*
+**Presentation:** recorded as `FocusQuest_Presentation.mp4` (16 min 39 s): https://www.youtube.com/watch?v=Qr1W7RMeTus
 
 **Individual reflections:** deferred.

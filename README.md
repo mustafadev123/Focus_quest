@@ -122,7 +122,7 @@ dart run flutter_launcher_icons
 
 **Manual device checks:** the team reports notifications, landscape, TalkBack and large text, airplane-mode persistence, the History chart and the release APK all working on the phone. **A second device or emulator has not yet been recorded.** Details are in [docs/TEST_REPORT.md](docs/TEST_REPORT.md).
 
-**Presentation:** recorded as `FocusQuest_Presentation.mp4` (16 min 39 s). *Video link: pending.*
+**Presentation:** recorded as `FocusQuest_Presentation.mp4` (16 min 39 s): https://www.youtube.com/watch?v=Qr1W7RMeTus
 
 ## Known limitations
 
