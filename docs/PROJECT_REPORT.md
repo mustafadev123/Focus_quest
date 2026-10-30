@@ -85,9 +85,9 @@ Full detail is in [ARCHITECTURE.md](../ARCHITECTURE.md) §4.
 | Background processing | History totals and report text prepared with `compute` in a background isolate; recovery from persisted timestamps |
 | Local notifications | Opt-in daily reminder and session-end alert; permission-denied feedback; cancel/reschedule on pause, reset, finish and settings changes |
 | File operations | Study summary written to a text file, read back for the preview, with write and read failure messages |
-| Smart helper with baseline and evaluation | Implemented and tested on development cases; **held-out evaluation not yet run** ([AI_FEATURE.md](../AI_FEATURE.md)) |
+| Smart helper with baseline and evaluation | Implemented and tested on development cases, plus an illustrative calculated comparison on five team cases. **A completed held-out evaluation has not been recorded** ([AI_FEATURE.md](../AI_FEATURE.md) §7). |
 | At least 10 unit tests, widget tests, integration tests, coverage report | 258 unit and widget tests, 5 integration tests on a phone, 95.4% measured coverage |
-| Two-device / emulator checks; portrait/landscape; accessibility; notifications | Automated layout and accessibility checks done; **device checks still outstanding** ([TEST_REPORT.md](TEST_REPORT.md) §7) |
+| Two-device / emulator checks; portrait/landscape; accessibility; notifications | Automated layout and accessibility checks done. Landscape, TalkBack and large text, notifications and airplane mode are reported working by the team on the phone. **No second device or emulator recorded yet** ([TEST_REPORT.md](TEST_REPORT.md) §7). |
 
 ## 8. Testing summary
 
@@ -98,7 +98,10 @@ Full detail is in [ARCHITECTURE.md](../ARCHITECTURE.md) §4.
   - session and task CRUD with cascade delete
   - task edits and preferences after a restart
 - **Coverage:** 95.4% of measured lines. `main.dart` and the notification plugin wrapper are not measured.
-- **Release APK:** built (54.1 MB). It installed on the Samsung phone and launched without a crash. A full manual pass on the release build has not been recorded.
+- **Release APK:** built (54.1 MB). It installed on the Samsung phone and launched without a crash. The team reports a manual feature check on the release build.
+- **These results still apply:** the code is unchanged since `917dbe6` apart from three added test assertions, after which all 258 tests passed again.
+- **Manual device checks, reported by the team as working:** notifications, landscape, TalkBack and large text, airplane-mode persistence, the History chart, the release APK. Device and dates are still to be supplied.
+- **Still required:** a second device or emulator.
 
 Full detail, including failures found and fixed, is in [TEST_REPORT.md](TEST_REPORT.md).
 
@@ -112,23 +115,44 @@ Full detail, including failures found and fixed, is in [TEST_REPORT.md](TEST_REP
 - **Integrating parallel work:** an earlier duplicate implementation in the repository used a conflicting database schema. Its useful logic (helper formula and tie-breaking) was moved into the layered structure, and the duplicate was removed.
 - **Real-phone differences:** on the phone, the on-screen keyboard hides the bottom of the task form. Desktop tests can't see this; the on-device integration tests did.
 
-## 10. Revisions from testing
+## 10. Peer feedback and revisions
 
-**No peer-observation evidence has been recorded yet.** The proposal's peer observation and documented before/after improvement (§4) are still outstanding.
+### 10.1 Peer observation (reported by the team)
 
-Changes made after the team's own use of the app on the phone (not peer feedback):
+The team reports that a peer tried the app and gave feedback, which led to the revisions below. The peer then tried the revised app again (a peer retry). **No direct quote, timing figures or other measures of improvement were recorded,** so none are given here. *The date of the observation and the peer's role (for example, classmate) are pending.*
+
+| Observation | Revision | Repository evidence |
+|---|---|---|
+| The peer found the original coloured interface distracting | The interface was changed to grayscale | The first app commit (`8fe3325`) replaced the Flutter template's purple theme with the grayscale theme in `lib/presentation/theme.dart`. The proposal's wireframes (Oct 18) were already grayscale. |
+| The helper originally did not account for task priority | Its calculation was revised to include priority | **To be clarified.** Every recorded version of the helper includes priority: the proposal's formula (Oct 18, priority weighted 50%), the earlier plan in AI_FEATURE.md (`8ec4480`), the first implementation (`f2290ae`) and the current code. This revision therefore cannot be traced to a commit. The team should confirm which version lacked priority, for example an early prototype or a design draft outside this repository. |
+
+### 10.2 Revisions from the team's own testing
+
+Not peer feedback:
 - **Cancel and Save task:** Cancel was a small text button squeezed to the left. They now share the row in equal halves; a test checks the layout.
 - **Session length:** the length of a single session could only be changed through Settings. A one-off length can now be set on the Focus screen while Ready.
 
 ## 11. Known limitations
 
 - **Android only;** iOS was not built or tested.
-- **Notifications** are inexact and need the reminder switched on; delivery has not been verified on a device.
-- **The helper** ignores deadlines; its held-out evaluation is not yet done.
+- **Notifications** are inexact and need the reminder switched on. Delivery is reported working by the team, but no log is stored.
+- **The helper** ignores deadlines, and a completed held-out evaluation has not been recorded.
 - **The History chart** counts a session on the day it started.
 - **The release APK** is signed with the debug key.
-- **Second-device, landscape, TalkBack and airplane-mode checks** are still outstanding.
+- **Manual device checks** are team reports without stored logs or screenshots. **No second device or emulator** has been recorded.
 
-## 12. Team contributions and reflections
+## 12. Team contributions
 
-Deferred.
+| Member | Responsible for |
+|---|---|
+| **Muhammad Mustufa** | SQLite schema and repositories; StudyTask CRUD and validated Add/Edit form; Dashboard and task integration; History filters and study totals; Settings and saved preferences; unit and database tests |
+| **Praneeth Shankar Ravuri** | StudySession CRUD and Focus Session screen; timer lifecycle and restart recovery; smart helper, baseline and evaluation work; local notifications; background processing and report file operations; session and widget tests |
+| **Shared** | Riverpod architecture and dependency injection; integration testing and accessibility review; documentation and presentation |
+
+Code and test locations for each area, and the git commit record, are in [CONTRIBUTIONS.md](CONTRIBUTIONS.md). AI assistance is recorded in [AI_Usage_Log.md](../AI_Usage_Log.md).
+
+**Kanban evidence:** the team reports that the instructor waived this requirement. ClickUp screenshots will be attached by Praneeth (*pending*).
+
+**Presentation:** recorded as `FocusQuest_Presentation.mp4` (16 min 39 s). *Video link: pending.*
+
+**Individual reflections:** deferred.

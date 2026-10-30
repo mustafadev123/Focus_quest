@@ -30,9 +30,10 @@ flutter test integration_test -d <device-id>  # on-device integration tests
 | Unit and widget tests | `flutter test` | `917dbe6` | **258 / 258 passed** |
 | Coverage | `flutter test --coverage` | `917dbe6` | **95.4%** (2383 of 2498 measured lines) |
 | Integration tests | `flutter test integration_test -d R5CYA0BD7ET` | `917dbe6` | **5 / 5 passed** on the Samsung phone (47 s) |
-
 | Release build | `flutter build apk --release` | `917dbe6` | Built `build/app/outputs/flutter-apk/app-release.apk` (54.1 MB, 192 s). Min SDK 24, target SDK 36, version 1.0.0. |
 | Release install and launch | `flutter install -d R5CYA0BD7ET --release`, then launched with `adb` | `917dbe6` | Installed. The app started and was still running 8 s later, with no crash or Flutter error in the device log. **This shows it starts; it does not verify the features in the release build.** |
+
+**These results still apply to the current code.** Since `917dbe6`, the only code change is commit `966eefc`, which added three baseline assertions to `test/domain/smart_helper_test.dart`. That file (11 / 11) and the full unit and widget suite (258 / 258) were run again after the change and passed. Later commits changed documentation only.
 
 **Notes on the integration run:**
 - **The first attempt on `917dbe6` ran no tests.** All five were reported "did not complete" at 0:00, before any test started. The test app failed to launch or connect, most likely because the phone had just been reconnected. No assertion failed. The immediate second attempt built, installed and passed all five.
@@ -101,7 +102,7 @@ The unit and widget suite has 252 test declarations. 258 tests run because the c
 - **Full report:** [`COVERAGE.md`](../COVERAGE.md), per file. The raw data is `coverage/lcov.info` (ignored by git).
 - **Scope:** unit and widget tests only. Integration tests are not measured.
 - **Not measured,** because no unit or widget test loads these files:
-  - `lib/main.dart` and `lib/data/services/local_notification_service.dart` need a real device and are checked manually (section 7)
+  - `lib/main.dart` and `lib/data/services/local_notification_service.dart` need a real device and are checked manually (section 7.1)
   - `settings_repository.dart` and `report_file_service.dart` are interfaces with no executable lines
 - **Low-coverage files** are mostly equality, `hashCode` and `toString` methods. Also lower: `clock.dart`, the system clock that tests replace, and the default background-isolate builders, which widget tests replace and unit tests exercise directly.
 
@@ -120,18 +121,18 @@ The unit and widget suite has 252 test declarations. 258 tests run because the c
 | Duplicate-save prevention | `focus_session_test`, `focus_checkpoint_repository_test`, `focus_controller_test`, `focus_screen_test`, `task_form_screen_test` | — |
 | Save opens History; totals refresh | `focus_screen_test`, `history_screen_test` | Integration: History and Dashboard show 12 min after save and after restart |
 | History filters and totals (isolate) | `sqlite_session_repository_test`, `history_test`, `history_screen_test` | — |
-| Seven-day chart | `insights_test`, `history_chart_test` | **Not yet on a device** |
+| Seven-day chart | `insights_test`, `history_chart_test` | Manual: checked by eye on the phone, reported by the team (§7.1) |
 | Smart helper: normal, no history, invalid, boundary, tie, counterexample | `smart_helper_test` (every proposal §9 example), `helper_providers_test` | — |
 | Recommendation accept / dismiss / override | `recommendation_card_test` | — |
-| Held-out helper evaluation vs baseline | **Not run**: the frozen held-out cases do not exist yet | — |
+| Held-out helper evaluation vs baseline | **Not run.** An illustrative calculated comparison on five team cases is in AI_FEATURE.md §7; it is not a held-out evaluation. | — |
 | Settings saved and restored | `prefs_settings_repository_test`, `settings_screen_test` | Integration: 5 min, reduced motion and dark theme survive a restart |
 | Dark mode | `theme_test` (contrast, System / Light / Dark) | Integration: dark theme after restart |
 | Reduced motion | `task_actions_test`, `focus_screen_test`, `settings_screen_test` | Integration: still on after restart |
-| Notifications: scheduling logic and permission flow | `notification_schedule_test`, `notifications_test` (fake service) | **Delivery not verified on a device** |
+| Notifications: scheduling logic and permission flow | `notification_schedule_test`, `notifications_test` (fake service) | Manual: delivery and permission-denied card reported working by the team (§7.1) |
 | Text report: write, read back, failures | `study_report_test`, `local_report_file_service_test`, `report_screen_test` | — |
-| Offline operation | `lib/` contains no network code or network packages, and no test depends on network access | Integration tests use only local storage. **An airplane-mode run has not been recorded.** |
+| Offline operation | `lib/` contains no network code or network packages, and no test depends on network access | Integration tests use only local storage. Manual: airplane-mode persistence reported working by the team (§7.1). |
 | Database upgrade v1 → v2 | `focus_checkpoint_repository_test` (upgrades a real version-1 file and keeps its data) | Informal only: the phone had a version-1 database from earlier builds and the app kept working after the upgrade. Not checked explicitly. |
-| Accessibility labels, large text | Screen-reader labels and 2× text-scale checks in the widget tests | **TalkBack not checked on a device** |
+| Accessibility labels, large text | Screen-reader labels and 2× text-scale checks in the widget tests | Manual: TalkBack and large text reported working by the team (§7.1) |
 
 ## 6. Portrait and landscape
 
@@ -142,27 +143,30 @@ The unit and widget suite has 252 test declarations. 258 tests run because the c
 - the History chart on a phone-sized portrait screen in dark mode at 2× text
 - the Dashboard places the task list beside the summary in landscape
 
-**On the phone:** informal portrait use while the app was being built. The app installed and the Dashboard displayed. Tasks were added, edited and deleted. Focus sessions were started, finished and saved, and the totals updated. The completion animation and the move to History worked. **No structured landscape check on a physical device has been recorded.**
+**On the phone:** see the landscape row in section 7.
 
-## 7. Physical-device verification still required
+## 7. Manual device checks
 
-Not done or not recorded:
+These were done by hand by the team, not by the test tools. **No logs, screenshots or recordings of them are stored in the repository.** Fields marked *pending* are details the team still needs to supply.
 
-1. **Second device or emulator:** a run of the core flows on a second Android device or an emulator (proposal §10). No emulator is configured on the development machine.
-2. **Notification delivery:**
-   - the daily reminder arrives at the chosen time
-   - the session-end alert arrives while the app is in the background
-   - the "Notifications are off" card and **Open phone settings** appear after the permission is denied
-3. **Landscape on a phone:** Dashboard (list beside summary), Focus, History with the chart, Settings.
-4. **TalkBack and large system font:** the core flow (add task → focus → save → History).
-5. **Airplane mode:** the core flow with networking off.
-6. **Release APK, manual pass:** it is installed and launches (section 3). Still to check by hand:
-   - add a task
-   - run and save a focus session
-   - confirm it appears in History
-   - change a setting, close and reopen the app
-   - confirm the task, session and setting are all still there
-7. **History chart on the phone:** the integration tests pass through History with the chart on screen but do not check it. Look at it by eye in light and dark mode.
+### 7.1 Confirmed by the team
+
+The team reports each check below as working. **Device and date for all rows: pending.**
+
+| Check | What was checked | Result |
+|---|---|---|
+| Notifications | Daily reminder arrives; session-end alert arrives while the app is in the background; the "Notifications are off" card and **Open phone settings** appear after permission is denied | Works |
+| Landscape | Dashboard (list beside summary), Focus, History with the chart, Settings | Works |
+| TalkBack and large text | Core flow with the screen reader and a large system font | Works |
+| Airplane mode | Data saved with networking off is still there after closing and reopening the app | Works |
+| History chart | Checked by eye on the phone | Works |
+| Release APK | Feature check on the release build, beyond the install and launch recorded in section 3 | Works |
+
+Earlier informal use during development also covered adding, editing and deleting tasks, running and saving focus sessions, the completion animation and the move to History.
+
+### 7.2 Still required
+
+1. **Second device or emulator** (proposal §10; question T1): **not recorded.** Needed: the device or emulator name, its Android version, the date, which flows were run (or whether the integration tests were run on it), and the result.
 
 ## 8. Failures found during testing, and fixes
 
@@ -183,6 +187,8 @@ Not done or not recorded:
 
 - **Notifications:** scheduling is inexact, so alerts may arrive a few minutes late on a sleeping phone. The daily reminder repeats at a fixed moment, so after a daylight-saving change it is off by an hour until the app is next opened. The plugin wrapper and `main.dart` are not covered by automated tests.
 - **The chart counts a session wholly on the day it started**, even if it ran past midnight.
-- **Helper quality** has only been checked on development examples, not on held-out cases.
-- **Release build:** built and launches, but no feature has been checked by hand in it. Release builds are compiled differently from the debug builds the tests use. It is signed with the debug key.
+- **Helper quality** has been checked only on development examples and an illustrative calculation, not on held-out cases.
+- **Release build:** the team reports a manual feature check on it (§7.1), but no log of that check is stored. Release builds are compiled differently from the debug builds the tests use. It is signed with the debug key.
 - **One integration-test tap** in the History test landed on the list rather than its target (section 3). The test passed, but that tap should be positioned more robustly.
+- **Manual checks have no stored evidence.** The results in §7.1 are team reports, without device, date, logs or screenshots.
+- **No second device or emulator** has been recorded (§7.2).

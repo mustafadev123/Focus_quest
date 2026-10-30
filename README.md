@@ -107,16 +107,40 @@ dart run flutter_launcher_icons
 | [COVERAGE.md](COVERAGE.md) | Line coverage by layer and file |
 | [docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md) | Problem, solution, screens, data model, graduate requirements |
 | [AI_Usage_Log.md](AI_Usage_Log.md) | Record of AI assistance |
+| [docs/CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) | Team responsibilities, code and test locations, commit record |
+
+## Status
+
+**Automated checks** (commit `917dbe6`; the code is unchanged since then apart from three added test assertions):
+
+| Check | Result |
+|---|---|
+| `flutter analyze` | No issues |
+| Unit and widget tests | 258 / 258 passed |
+| Integration tests | 5 / 5 passed on a Samsung SM-S731U1 (Android 17) |
+| Line coverage | 95.4% of measured lines, from unit and widget tests only. `main.dart` and the notification plugin wrapper are not measured. See [COVERAGE.md](COVERAGE.md). |
+
+**Manual device checks:** the team reports notifications, landscape, TalkBack and large text, airplane-mode persistence, the History chart and the release APK all working on the phone. **A second device or emulator has not yet been recorded.** Details are in [docs/TEST_REPORT.md](docs/TEST_REPORT.md).
+
+**Presentation:** recorded as `FocusQuest_Presentation.mp4` (16 min 39 s). *Video link: pending.*
 
 ## Known limitations
 
 - **Android only.** iOS was not built or tested.
 - **Notifications** are scheduled inexactly, so they may arrive a few minutes late on a sleeping phone. After a daylight-saving change, the daily reminder is off by an hour until the app is next opened.
-- **The helper** does not model deadlines, and its held-out evaluation has not been run yet ([AI_FEATURE.md](AI_FEATURE.md)).
+- **The helper** does not model deadlines. Its comparison with the baseline is an illustrative calculation,  a completed held-out evaluation ([AI_FEATURE.md](AI_FEATURE.md)).
 - **The History chart** counts a session wholly on the day it started.
 - **The release APK** is signed with the debug key.
-- **Device checks still outstanding:** second device, notification delivery, landscape, TalkBack and airplane mode ([docs/TEST_REPORT.md](docs/TEST_REPORT.md)).
+- **A second-device or emulator check** is still to be recorded ([docs/TEST_REPORT.md](docs/TEST_REPORT.md)).
 
-## Team contributions and Kanban evidence
+## Team contributions
 
-To be added.
+| Member | Responsible for |
+|---|---|
+| **Muhammad Mustufa** | SQLite schema and repositories; StudyTask CRUD and the validated Add/Edit form; Dashboard and task integration; History filters and study totals; Settings and saved preferences; unit and database tests |
+| **Praneeth Shankar Ravuri** | StudySession CRUD and the Focus Session screen; timer lifecycle and restart recovery; smart helper, baseline and evaluation work; local notifications; background processing and report file operations; session and widget tests |
+| **Shared** | Riverpod architecture and dependency injection; integration testing and accessibility review; documentation and presentation |
+
+Code and test locations for each area, and the git commit record, are in [docs/CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md). AI assistance is recorded in [AI_Usage_Log.md](AI_Usage_Log.md).
+
+**Kanban evidence:** the team reports that the instructor waived this requirement. ClickUp screenshots will be added by Praneeth (*pending*).

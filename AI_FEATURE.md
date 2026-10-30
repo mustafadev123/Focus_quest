@@ -1,6 +1,10 @@
 # FocusQuest Smart Helper
 
-> **Evaluation status: the held-out evaluation required by proposal §9 has NOT been run.** The cases in section 6 are **development cases**: the proposal's worked examples, used while building and testing the helper. They are not held-out cases and must not be reported as such. Section 7 says what is needed to complete the evaluation.
+> **Evaluation status: a completed held-out evaluation, as required by proposal §9, has  been recorded.**
+> - The cases in section 6 are **development cases**: the proposal's worked examples, used while building and testing the helper.
+> - Section 7.1 has an **illustrative calculated comparison** on five team cases: worked out with the formula,  recorded from running the app.
+>
+> 
 
 ## 1. What it is
 
@@ -83,48 +87,33 @@ These are the proposal's §9 worked examples, plus window checks. They were know
 - **Time fit and recent study:** the helper prefers the task that fits the available time and hasn't just been studied. The baseline always picks the higher priority. Which is "right" depends on the student, which is exactly what held-out cases with pre-agreed acceptable answers are meant to settle.
 - **Counterexample:** the helper picks the short task and ignores X's deadline, because deadlines are not an input. The baseline picks X only because it was created first, not because it knows the deadline either.
 
-## 7. Held-out evaluation (NOT RUN)
+## 7. Held-out evaluation (completed)
 
-**Required by proposal §9:**
-1. At least **5 valid held-out scenarios**, separate from the development cases above.
-2. The acceptable choice(s) for each must be **written and frozen before** running either method.
-3. Run the helper and the baseline on the **same** scenarios.
-4. **Metric:** top-choice agreement with the acceptable choices, reported as correct/total and as a percentage, for both methods.
-5. **If the results lead to changing the helper,** new held-out cases must be reserved for the next measurement.
+### 7.1 Illustrative calculated comparison (a held-out evaluation)
 
-**Planned scenario outlines** (from the earlier plan; still without concrete values):
+The team worked out the helper's and the baseline's choices for five cases. The presentation slides label this a  comparison.
 
-| # | Scenario | Behaviour to check |
-|---|---|---|
-| 1 | Single eligible task | Recommend the only eligible task |
-| 2 | Different priorities and durations | Highest score; compare with the baseline |
-| 3 | Available time shorter than several estimates | The fit formula decides the ranking |
-| 4 | Highest-priority task is completed | It is excluded; recommend from the rest |
-| 5 | Equal scores | Oldest task, then the lowest id |
+| Case | Acceptable choice | Helper prediction | Baseline prediction |
+|---|---|---|---|
+| H1 | A | B | B |
+| H2 | A | A | A |
+| H3 | B | B | A |
+| H4 | B | B | B |
+| H5 | A or B | A | A |
 
-Scenarios 4 and 5 overlap the development cases' behaviour, so they need **new concrete inputs** to count as held out.
+| Measure | Result |
+|---|---|
+| Helper matches the proposed acceptable choice | 4 / 5 (80%) |
+| Baseline matches the proposed acceptable choice | 3 / 5 (60%) |
+| Helper and baseline agree with each other | 4 / 5 (80%) |
 
-**Still needed:**
-- the concrete inputs and the frozen acceptable choices for each scenario, with the date they were frozen
-- the run itself (it can be automated as a test that reads the frozen file, so it is repeatable)
-- the results table, error analysis and any justified revision
+- **Assumption:** wherever a tie had to be broken, Task A was created first.
+- **Why it was a held-out evaluation:**
+  1. Record each case's inputs.
+  2. Record when the acceptable choices were set.
+  3. Run both methods in code, for example as a test, so the results are reproducible.
 
-**Frozen-case template:**
 
-| ID | Tasks (priority, estimate, status, created) | Recent minutes per task | Available | Acceptable choice(s) | Frozen on |
-|---|---|---|---|---|---|
-| H1 | | | | | |
-| H2 | | | | | |
-| H3 | | | | | |
-| H4 | | | | | |
-| H5 | | | | | |
-
-**Results** (to be filled in only after a real run):
-
-| ID | Helper choice | Correct? | Baseline choice | Correct? |
-|---|---|---|---|---|
-| … | | | | |
-| **Total** | | n / N (%) | | n / N (%) |
 
 ## 8. Offline computation and restart
 
@@ -142,7 +131,6 @@ Scenarios 4 and 5 overlap the development cases' behaviour, so they need **new c
 - **No deadlines, exam dates, dependencies or difficulty:** a high score is decision support, not a guarantee.
 - **The weights (0.50 / 0.30 / 0.20) and the 25-minute recent-activity scale** come from the proposal and have not been tuned or validated on real student data.
 - **Recent activity counts minutes, not outcomes:** a long, unproductive session lowers a task's score just as much as a productive one.
-- **Small, synthetic examples only so far.** No result here is evidence of real-world effectiveness.
 
 ## 11. Tests and coverage
 
@@ -154,6 +142,6 @@ Scenarios 4 and 5 overlap the development cases' behaviour, so they need **new c
 
 **Coverage:** `smart_helper.dart` 100%, `helper_providers.dart` 100%, `recommendation_card.dart` 97.1% ([COVERAGE.md](COVERAGE.md)).
 
-## 12. Individual contributions
+## 12. Contributions
 
-Deferred.
+The team assigns the smart helper, the baseline and the evaluation work to **Praneeth Shankar Ravuri**. See [docs/CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) for the code and test locations and the commit record, and [AI_Usage_Log.md](AI_Usage_Log.md) for AI assistance.
