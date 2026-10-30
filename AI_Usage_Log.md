@@ -2,34 +2,23 @@
 
 ## Purpose
 
-This document records AI assistance used during project planning and documentation.
+This document records AI assistance used by Team Desi_hackers during the development of FocusQuest.
 
-## Entry 1 — Project Planning
+## 1. Smart Helper
 
-- Date: October 2026
-- Tool: ChatGPT
-- Purpose: Help organize the project proposal and identify the required planning sections.
-- Use: Prepared draft descriptions of the project, proposed screens, user stories, and data design.
-- Review: The team must review the content against the official Project One guide and correct anything inaccurate.
+- Tool: Claude.
+- Assistance: Developing and refining the rule-based helper, its scoring calculation, baseline comparison, and explanations.
+- Team involvement: Both members reviewed the logic and checked its behavior. The helper runs locally and does not call an AI service.
 
-## Entry 2 — Wireframe Planning
+## 2.Testing
 
-- Date: October 2026
-- Tool: Claude
-- Purpose: Help generate initial wireframe concepts for the five planned application screens.
-- Use: Created draft visual concepts for the Dashboard, Add/Edit Task, Focus Session, History & Insights, and Settings screens.
-- Review: The team must check the wireframes against the proposal and assignment requirements.
+- Tool: Claude.
+- Assistance: Drafting portions of the application code, suggesting fixes, and partially generating and refining automated test cases.
+- Team involvement: Both members worked together on implementation, reviewed the assisted changes, and ran tests and device checks. Team members made the commits.
 
-## Entry 3 — Documentation
-
-- Date: October 2026
-- Tool: ChatGPT
-- Purpose: Help draft the README, architecture plan, and smart-helper documentation.
-- Use: Created initial documentation drafts describing planned features and technical decisions.
-- Review: These files describe planned work. They do not prove that features have been implemented or tested.
 
 ## Responsible Use
 
-AI-generated suggestions are treated as drafts. The team is responsible for understanding, reviewing, editing, implementing, and testing the project.
+Both team members remain responsible for understanding and verifying the submitted code, tests, and documentation.
 
-Actual implementation, test results, and evaluation results will be recorded only after the work has been completed and verified.
+AI assistance does not establish that a feature works or that an evaluation was completed. Reported test results must come from actual runs. Simulated or calculated examples are labeled separately from observed results.
